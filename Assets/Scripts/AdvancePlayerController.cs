@@ -1,63 +1,115 @@
-// Lecture Note
-// [1] New Input System in Unity: https://learn.unity.com/tutorial/getting-started-with-the-new-input-system
-
 using UnityEngine;
-using UnityEngine.InputSystem;
-
-public class AdvancePlayerController : MonoBehaviour
+using UnityEngine.UI;
+public enum PlayerID 
 {
-    // [1] Define the car settings
-    [Header("Car Settings")]
-    public float maxSpeed = 20.0f;
-    public float acceleration = 10.0f;
-    public float deceleration = 15.0f;
-    public float turnSpeed = 180.0f;
-    public float brakingForce = 20.0f;
+    Player1,
+    Player2
+}
 
-    // [2] Define the current state of the car
-    [Header("Current State")]
-    private float currentSpeed = 0.0f;
-    private float horizontalInput = 0;
-    private float forwardInput = 0;
-    private bool isBraking = false;
+public abstract class BaseCarController : MonoBehaviour
+{
+    [Header("Stats")]
+    public int maxHP = 3;
+    protected int currentHP;
 
-    void Update()
+    [Header("UI")]
+    public Text hpText;
+    public Text scoreText;
+    public Text distanceText;
+    public Text speedText;
+
+    [Header("Movement")]
+    public float moveSpeed = 10f;
+    public float maxSpeed = 100f;
+    public float speedGainRate = 0.05f;
+    public float horizontalAcceleration = 20f;
+    public float horizontalMaxSpeed = 5f;
+    public float horizontalDamping = 10f;
+    public float boundaryLimit = 5f;
+
+    protected float horizontalVelocity = 0f;
+    protected float distanceTraveled = 0f;
+    protected float startX;
+
+    public GameManager gameManager;
+
+    protected abstract void HandleInput();
+
+    protected virtual void Start()
     {
-        // [3] Get input values
-        InputAction moveAction = InputSystem.actions.FindAction("Move");
-        Vector2 input = moveAction.ReadValue<Vector2>();
-        horizontalInput = input.x;
-        forwardInput = input.y;
+        currentHP = maxHP;
+        startX = transform.position.x;
+        UpdateHPUI();
+    }
 
-        // [4] Handle braking
-        isBraking = Input.GetKey(KeyCode.Space);
+    protected virtual void Update()
+    {
+        HandleInput();
+        ApplyHorizontalMovement();
+        UpdateScoreAndDistance();
+        IncreaseSpeedOverTime();
+    }
 
-        // [5] Apply acceleration/deceleration
-        // and Calculate currentSpeed
-        if (forwardInput != 0)
+    protected void ApplyHorizontalMovement()
+    {
+        float nextX = transform.position.x + horizontalVelocity * Time.deltaTime;
+        float minX = startX - boundaryLimit;
+        float maxX = startX + boundaryLimit;
+        nextX = Mathf.Clamp(nextX, minX, maxX);
+        transform.position = new Vector3(nextX, transform.position.y, transform.position.z);
+    }
+
+    protected void UpdateScoreAndDistance()
+    {
+        
+        distanceTraveled += Time.deltaTime * moveSpeed;
+        if (distanceText != null)
+            distanceText.text = "Distance: " + Mathf.FloorToInt(distanceTraveled) + " m";
+
+        // Update speed UI
+        if (speedText != null)
+            speedText.text = "Speed: " + Mathf.FloorToInt(moveSpeed) + " km/h"; 
+    }
+
+
+    protected void IncreaseSpeedOverTime()
+    {
+        if (moveSpeed < maxSpeed)
         {
-            // [6] Apply acceleration to currentSpeed
-
+            moveSpeed += speedGainRate * Time.deltaTime;
+            moveSpeed = Mathf.Min(moveSpeed, maxSpeed);
         }
-        else
+    }
+
+    protected void UpdateHPUI()
+    {
+        if (hpText != null)
+            hpText.text = "HP: " + currentHP;
+    }
+
+    public void TakeDamage(int amount)
+    {
+        currentHP -= amount;
+        UpdateHPUI();
+
+        if (currentHP <= 0)
         {
-            // [7] Natural deceleration when no input
-
+            Die();
         }
+    }
 
-        // [8] Apply braking
-        if (isBraking)
+    protected virtual void Die()
+    {
+        moveSpeed = 0f;
+        gameObject.SetActive(false);
+    }
+
+    protected virtual void OnTriggerEnter(Collider other)
+    {
+        if (other.CompareTag("Obstacle"))
         {
-
+            TakeDamage(1);
+            Destroy(other.gameObject);
         }
-
-        // [9] Clamp speed
-
-
-        // [10] **Apply movement**
-
-
-        // [11] Apply steering (only when moving)
-
     }
 }
