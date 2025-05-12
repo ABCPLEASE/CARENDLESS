@@ -20,12 +20,17 @@ public class SpawnManager : MonoBehaviour
     void Update()
     {
         float speed = 0f;
+
         if (player1Controller != null)
-            speed = player1Controller.moveSpeed;
-        else if (player2Controller != null)
-            speed = player2Controller.moveSpeed;
-        else
+            speed = Mathf.Max(speed, player1Controller.moveSpeed);
+
+        if (player2Controller != null)
+            speed = Mathf.Max(speed, player2Controller.moveSpeed);
+
+        // If both controllers are null, just return
+        if (speed <= 0f)
             return;
+
 
         timer += Time.deltaTime;
 

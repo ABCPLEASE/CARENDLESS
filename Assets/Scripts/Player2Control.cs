@@ -19,8 +19,8 @@ public class Player2CarController : BaseCarController
 
     protected override void Die()
     {
-        base.Die();
         gameManager.PlayerDied(PlayerID.Player2);
         Debug.Log("Player 2 died!");
+        base.Die();  // Disable only after notifying the GameManager
     }
 }

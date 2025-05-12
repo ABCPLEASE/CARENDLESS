@@ -1,2 +1,18 @@
 fileFormatVersion: 2
 guid: f0b79f2be3f4b514383da19497017a20
+MonoImporter:
+  externalObjects: {}
+  serializedVersion: 2
+  defaultReferences:
+  - hpText: {instanceID: 0}
+  - scoreText: {instanceID: 0}
+  - distanceText: {instanceID: 0}
+  - speedText: {instanceID: 0}
+  - hitSound: {fileID: 8300000, guid: ec0092249e8362640aabdef85063cb4c, type: 3}
+  - drivingSound: {fileID: 8300000, guid: f5bbd74a9a1e6fa458ca06f7b997d40d, type: 3}
+  - gameManager: {instanceID: 0}
+  executionOrder: 0
+  icon: {instanceID: 0}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 

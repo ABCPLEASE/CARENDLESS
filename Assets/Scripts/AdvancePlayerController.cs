@@ -1,6 +1,7 @@
 using UnityEngine;
 using UnityEngine.UI;
-public enum PlayerID 
+
+public enum PlayerID
 {
     Player1,
     Player2
@@ -27,6 +28,14 @@ public abstract class BaseCarController : MonoBehaviour
     public float horizontalDamping = 10f;
     public float boundaryLimit = 5f;
 
+    [Header("Audio")]
+    public AudioClip hitSound; // Hit sound clip
+    public AudioClip drivingSound; // Driving sound clip
+    private AudioSource audioSource; // AudioSource for the car
+
+    [Header("Volume Control")]
+    [Range(0f, 1f)] public float volume = 1f; // Volume control for both sounds (range 0 to 1)
+
     protected float horizontalVelocity = 0f;
     protected float distanceTraveled = 0f;
     protected float startX;
@@ -40,6 +49,18 @@ public abstract class BaseCarController : MonoBehaviour
         currentHP = maxHP;
         startX = transform.position.x;
         UpdateHPUI();
+
+        // Set up the audio source
+        audioSource = GetComponent<AudioSource>();
+
+        // Play the driving sound loop when the game starts
+        if (drivingSound != null && audioSource != null)
+        {
+            audioSource.clip = drivingSound;
+            audioSource.loop = true;
+            audioSource.Play();
+            UpdateAudioVolume();
+        }
     }
 
     protected virtual void Update()
@@ -61,16 +82,14 @@ public abstract class BaseCarController : MonoBehaviour
 
     protected void UpdateScoreAndDistance()
     {
-        
         distanceTraveled += Time.deltaTime * moveSpeed;
         if (distanceText != null)
             distanceText.text = "Distance: " + Mathf.FloorToInt(distanceTraveled) + " m";
 
         // Update speed UI
         if (speedText != null)
-            speedText.text = "Speed: " + Mathf.FloorToInt(moveSpeed) + " km/h"; 
+            speedText.text = "Speed: " + Mathf.FloorToInt(moveSpeed) + " km/h";
     }
-
 
     protected void IncreaseSpeedOverTime()
     {
@@ -92,6 +111,13 @@ public abstract class BaseCarController : MonoBehaviour
         currentHP -= amount;
         UpdateHPUI();
 
+        // Play hit sound when taking damage
+        if (hitSound != null && audioSource != null)
+        {
+            audioSource.PlayOneShot(hitSound);
+            UpdateAudioVolume(); // Adjust volume when hit sound is played
+        }
+
         if (currentHP <= 0)
         {
             Die();
@@ -110,6 +136,15 @@ public abstract class BaseCarController : MonoBehaviour
         {
             TakeDamage(1);
             Destroy(other.gameObject);
+        }
+    }
+
+    // Method to update the audio volume based on the volume control
+    private void UpdateAudioVolume()
+    {
+        if (audioSource != null)
+        {
+            audioSource.volume = volume;
         }
     }
 }
